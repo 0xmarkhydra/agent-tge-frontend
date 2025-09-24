@@ -1,0 +1,2 @@
+http://agent-tge-server.up.railway.app -> http://agent-tge-server.up.railway.app
+https://agent.pretgemarket.xyz -> https://agent.pretgemarket.xyz

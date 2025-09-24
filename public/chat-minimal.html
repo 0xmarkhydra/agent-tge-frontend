@@ -202,6 +202,18 @@
             40% { transform: scale(1); }
         }
         
+        .streaming-cursor {
+            display: inline-block;
+            animation: blink 1s infinite;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
         .welcome-message {
             text-align: center;
             color: #666;
@@ -275,6 +287,12 @@
             return urlParams.get('token') || 'xpl';
         }
 
+        // Get API URL from URL parameters
+        function getApiUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('apiUrl') || 'http://agent-tge-server.up.railway.app/api';
+        }
+
         // Generate or get user ID
         function getUserId() {
             let userId = localStorage.getItem('chat_user_id');
@@ -307,7 +325,7 @@
         // Load chat history
         async function loadChatHistory() {
             try {
-                const response = await fetch(`https://agent-tge-server.up.railway.app/api/chat/history/${getUserId()}/${getTokenFromUrl()}?limit=20`);
+                const response = await fetch(`${getApiUrl()}/chat/history/${getUserId()}/${getTokenFromUrl()}?limit=20`);
                 if (response.ok) {
                     const data = await response.json();
                     const history = data.data || [];
@@ -336,7 +354,7 @@
             }
         }
 
-        // Send message
+        // Send message with streaming
         async function sendMessage() {
             const input = document.getElementById('chat-input');
             const message = input.value.trim();
@@ -351,11 +369,18 @@
             showTypingIndicator();
             
             try {
-                // Send to API with consistent user_id
-                const response = await fetch('https://agent-tge-server.up.railway.app/api/chat', {
+                console.log('🔄 [ChatMinimal] Sending streaming message:', { 
+                    user_id: getUserId(), 
+                    token_slug: getTokenFromUrl(), 
+                    question: message 
+                });
+                
+                // Send to streaming API
+                const response = await fetch(`${getApiUrl()}/chat/stream`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'text/event-stream',
                     },
                     body: JSON.stringify({
                         user_id: getUserId(),
@@ -364,27 +389,115 @@
                     })
                 });
                 
-                console.log('💬 [ChatMinimal] Sending message:', { 
-                    user_id: getUserId(), 
-                    token_slug: getTokenFromUrl(), 
-                    question: message 
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    hideTypingIndicator();
-                    addMessage(data.data.answer, 'ai');
-                    console.log('✅ [ChatMinimal] Message sent successfully');
-                } else {
-                    hideTypingIndicator();
-                    addMessage('Sorry, I encountered an error. Please try again.', 'ai');
-                    console.error('🔴 [ChatMinimal] API error:', response.status, response.statusText);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+
+                hideTypingIndicator();
+                
+                // Create AI message container for streaming
+                const aiMessageDiv = createStreamingMessage();
+                let aiResponse = '';
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    
+                    if (done) {
+                        console.log('✅ [ChatMinimal] Streaming completed');
+                        break;
+                    }
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (line.trim() === '') continue;
+                        
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            if (data === '[DONE]') {
+                                console.log('✅ [ChatMinimal] Stream ended');
+                                return;
+                            }
+                            
+                            try {
+                                const chunk = JSON.parse(data);
+                                console.log('📦 [ChatMinimal] Received chunk:', chunk);
+                                
+                                if (chunk.type === 'chunk') {
+                                    aiResponse += chunk.data;
+                                    updateStreamingMessage(aiMessageDiv, aiResponse, true);
+                                } else if (chunk.type === 'complete') {
+                                    updateStreamingMessage(aiMessageDiv, aiResponse, false);
+                                    console.log('✅ [ChatMinimal] Message completed with metadata:', chunk.data);
+                                }
+                            } catch (error) {
+                                console.error('🔴 [ChatMinimal] Parse error:', error);
+                            }
+                        }
+                    }
+                }
+                
             } catch (error) {
                 hideTypingIndicator();
                 addMessage('Sorry, I cannot connect to the server right now.', 'ai');
                 console.error('🔴 [ChatMinimal] Network error:', error);
             }
+        }
+
+        // Create streaming message container
+        function createStreamingMessage() {
+            const messagesContainer = document.getElementById('chat-messages');
+            
+            // Remove welcome message if it exists
+            const welcomeMessage = messagesContainer.querySelector('.welcome-message');
+            if (welcomeMessage) {
+                welcomeMessage.remove();
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai';
+            messageDiv.id = 'streaming-message';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = '🤖';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.innerHTML = '<span class="streaming-text"></span><span class="streaming-cursor">|</span>';
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            return messageDiv;
+        }
+
+        // Update streaming message
+        function updateStreamingMessage(messageDiv, content, isStreaming) {
+            const streamingText = messageDiv.querySelector('.streaming-text');
+            const streamingCursor = messageDiv.querySelector('.streaming-cursor');
+            
+            if (streamingText) {
+                streamingText.textContent = content;
+            }
+            
+            if (streamingCursor) {
+                streamingCursor.style.display = isStreaming ? 'inline' : 'none';
+            }
+            
+            // Scroll to bottom
+            const messagesContainer = document.getElementById('chat-messages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         // Add message to chat
