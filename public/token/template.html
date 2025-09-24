@@ -215,98 +215,33 @@
             <p>Token data updated in real-time</p>
         </div>
     </div>
+     <!-- Chat Widget Container -->
+     <div id="chat-widget"></div>
 
-    <!-- Chat Widget CDN Script -->
-    <script src="../chat-widget-cdn.js"></script>
-    
-    <script>
-        // Extract token from URL
-        function getTokenFromUrl() {
-            const pathSegments = window.location.pathname.split('/');
-            const tokenIndex = pathSegments.indexOf('token');
-            
-            if (tokenIndex > -1 && pathSegments.length > tokenIndex + 1) {
-                let token = pathSegments[tokenIndex + 1];
-                // Remove .html extension if present
-                if (token.endsWith('.html')) {
-                    token = token.slice(0, -5);
-                }
-                return token;
-            }
-            
-            return 'xpl'; // Fallback
-        }
-
-        // Update page content
-        function updatePageContent(tokenSlug) {
-            const tokenUpper = tokenSlug.toUpperCase();
-            
-            // Update page title
-            document.title = `${tokenUpper} Token - PretgeMarket`;
-            document.getElementById('page-title').textContent = `${tokenUpper} Token - PretgeMarket`;
-            
-            // Update header
-            document.getElementById('token-name').textContent = `${tokenUpper} Token`;
-            document.getElementById('token-symbol').textContent = tokenUpper;
-            
-            // Update token details
-            document.getElementById('status').textContent = 'Active';
-            document.getElementById('price').textContent = 'Loading...';
-            document.getElementById('market-cap').textContent = 'Loading...';
-            document.getElementById('network').textContent = 'Ethereum';
-        }
-
-        // Initialize chat widget
-        function initializeChatWidget(tokenSlug) {
-            const chatStatus = document.getElementById('chat-status');
-            
-            try {
-                // Initialize widget
-                ChatWidget.init({
-                    token: tokenSlug,
-                    position: 'bottom-right',
-                    theme: 'light',
-                    width: '400px',
-                    height: '600px',
-                    autoOpen: false,
-                    showNotification: true
-                });
-                
-                // Show success message
-                chatStatus.innerHTML = `
-                    <div class="success">
-                        ✅ Chat widget loaded successfully!<br>
-                        <small>Token: ${tokenSlug.toUpperCase()} | Click the chat button to start</small>
-                    </div>
-                `;
-                
-                console.log(`✅ [Token Page] Chat widget initialized for ${tokenSlug.toUpperCase()} token`);
-                
-            } catch (error) {
-                console.error('❌ [Token Page] Error initializing chat widget:', error);
-                chatStatus.innerHTML = `
-                    <div class="error">
-                        ❌ Failed to load chat widget<br>
-                        <small>Error: ${error.message}</small>
-                    </div>
-                `;
-            }
-        }
-
-        // Main initialization
-        function initialize() {
-            const tokenSlug = getTokenFromUrl();
-            console.log('🔍 [Token Page] Detected token:', tokenSlug);
-            
-            // Update page content
-            updatePageContent(tokenSlug);
-            
-            // Initialize chat widget
-            initializeChatWidget(tokenSlug);
-        }
-
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', initialize);
-    </script>
+     <!-- Chat Widget CDN Script -->
+     <script src="http://localhost:5173/chat-widget-cdn.js"></script>
+     
+     <script>
+         // Initialize chat widget for XPL - auto open
+         document.addEventListener('DOMContentLoaded', function() {
+             try {
+                 // Initialize widget with auto open
+                 ChatWidget.init({
+                     token: 'xpl',
+                     position: 'bottom-right',
+                     theme: 'light',
+                     width: '400px',
+                     height: '600px',
+                     autoOpen: true,
+                     showNotification: false
+                 });
+                 
+                 console.log('✅ [XPL Page] Chat widget initialized for XPL token');
+                 
+             } catch (error) {
+                 console.error('❌ [XPL Page] Error initializing chat widget:', error);
+             }
+         });
+     </script>
 </body>
 </html>

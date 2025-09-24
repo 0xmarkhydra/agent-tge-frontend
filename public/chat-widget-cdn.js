@@ -3,11 +3,58 @@
 
   // CDN Configuration
   const CDN_CONFIG = {
-    apiUrl: 'http://localhost:3000/api',
-    widgetUrl: 'http://localhost:5173',
+    apiUrl: 'agent-api.pretgemarket.xyz/api',
+    widgetUrl: 'https://agent.pretgemarket.xyz', // Updated to current port
     version: '1.0.0',
     cdnVersion: '1.0.0'
   };
+
+  // Auto-detect host from script src
+  function detectHostFromScript() {
+    try {
+      const scripts = document.getElementsByTagName('script');
+      for (let i = 0; i < scripts.length; i++) {
+        const script = scripts[i];
+        if (script.src && script.src.includes('chat-widget-cdn.js')) {
+          const url = new URL(script.src);
+          return {
+            protocol: url.protocol,
+            host: url.host,
+            baseUrl: `${url.protocol}//${url.host}`
+          };
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to detect host from script:', error);
+    }
+    return null;
+  }
+
+  // Get widget client URL from data attributes or script src
+  function getWidgetClientUrl(options) {
+    // Check if widget client URL is specified in data attributes
+    const widgetElement = document.getElementById('chat-widget');
+    if (widgetElement) {
+      const dataClientUrl = widgetElement.getAttribute('data-client-url');
+      if (dataClientUrl) {
+        return dataClientUrl;
+      }
+    }
+    
+    // Check if specified in options
+    if (options.clientUrl) {
+      return options.clientUrl;
+    }
+    
+    // Auto-detect from script src
+    const detectedHost = detectHostFromScript();
+    if (detectedHost) {
+      return detectedHost.baseUrl;
+    }
+    
+    // Fallback to config
+    return CDN_CONFIG.widgetUrl;
+  }
 
   // Widget state
   let widgetLoaded = false;
@@ -150,7 +197,14 @@
   // Create iframe
   function createIframe(options) {
     const iframe = document.createElement('iframe');
-    iframe.src = `${CDN_CONFIG.widgetUrl}/chat-minimal.html?token=${options.token}&userId=${options.userId}`;
+    
+    // Get widget client URL
+    const widgetUrl = getWidgetClientUrl(options);
+    
+    // Get API URL
+    const apiUrl = options.apiUrl || CDN_CONFIG.apiUrl;
+    
+    iframe.src = `${widgetUrl}/chat-minimal.html?token=${options.token}&userId=${options.userId}&apiUrl=${encodeURIComponent(apiUrl)}`;
     iframe.style.cssText = `
       width: ${options.width};
       height: ${options.height};
@@ -253,6 +307,7 @@
   function toggleWidget() {
     const iframe = document.getElementById('chat-widget-iframe');
     const closeButton = document.getElementById('chat-widget-close');
+    const toggleButton = document.getElementById('chat-widget-toggle');
     
     if (iframe) {
       const isVisible = iframe.style.display !== 'none';
@@ -263,11 +318,19 @@
         if (closeButton) {
           closeButton.style.display = 'none';
         }
+        // Show toggle button when widget is closed
+        if (toggleButton) {
+          toggleButton.style.display = 'flex';
+        }
       } else {
         // Show widget
         iframe.style.display = 'block';
         if (closeButton) {
           closeButton.style.display = 'flex';
+        }
+        // Hide toggle button when widget is opened
+        if (toggleButton) {
+          toggleButton.style.display = 'none';
         }
         
         // Hide notification when opened (if it exists)
@@ -355,11 +418,33 @@
     toggle: toggleWidget,
     show: function() {
       const iframe = document.getElementById('chat-widget-iframe');
-      if (iframe) iframe.style.display = 'block';
+      const closeButton = document.getElementById('chat-widget-close');
+      const toggleButton = document.getElementById('chat-widget-toggle');
+      
+      if (iframe) {
+        iframe.style.display = 'block';
+        if (closeButton) {
+          closeButton.style.display = 'flex';
+        }
+        if (toggleButton) {
+          toggleButton.style.display = 'none';
+        }
+      }
     },
     hide: function() {
       const iframe = document.getElementById('chat-widget-iframe');
-      if (iframe) iframe.style.display = 'none';
+      const closeButton = document.getElementById('chat-widget-close');
+      const toggleButton = document.getElementById('chat-widget-toggle');
+      
+      if (iframe) {
+        iframe.style.display = 'none';
+        if (closeButton) {
+          closeButton.style.display = 'none';
+        }
+        if (toggleButton) {
+          toggleButton.style.display = 'flex';
+        }
+      }
     },
     destroy: function() {
       const container = document.getElementById('chat-widget-container');
@@ -377,6 +462,10 @@
     const widgetElement = document.getElementById('chat-widget');
     let options = {};
 
+    // Detect host from script
+    const detectedHost = detectHostFromScript();
+    const defaultApiUrl = detectedHost ? `${detectedHost.baseUrl.replace(/:\d+/, ':3000')}/api` : CDN_CONFIG.apiUrl;
+
     if (widgetElement) {
       // Use data attributes if present
       options = {
@@ -388,7 +477,8 @@
         height: widgetElement.getAttribute('data-height') || '600px',
         autoOpen: widgetElement.getAttribute('data-auto-open') === 'true',
         showNotification: widgetElement.getAttribute('data-show-notification') !== 'false',
-        apiUrl: widgetElement.getAttribute('data-api-url') || CDN_CONFIG.apiUrl
+        apiUrl: widgetElement.getAttribute('data-api-url') || defaultApiUrl,
+        clientUrl: widgetElement.getAttribute('data-client-url')
       };
     } else {
       // No widget element found, use defaults with auto token detection
@@ -399,7 +489,7 @@
         height: '600px',
         autoOpen: false,
         showNotification: true,
-        apiUrl: CDN_CONFIG.apiUrl
+        apiUrl: defaultApiUrl
       };
     }
 
@@ -410,6 +500,11 @@
         options.token = detectedToken;
         console.log(`🔍 [ChatWidget] Auto-detected token from URL: ${detectedToken}`);
       }
+    }
+
+    // Log detected host info
+    if (detectedHost) {
+      console.log(`🌐 [ChatWidget] Auto-detected host: ${detectedHost.baseUrl}`);
     }
 
     // Remove null values

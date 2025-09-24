@@ -307,7 +307,7 @@
         // Load chat history
         async function loadChatHistory() {
             try {
-                const response = await fetch(`http://localhost:3000/api/chat/history/${getUserId()}/${getTokenFromUrl()}?limit=20`);
+                const response = await fetch(`https://agent-tge-server.up.railway.app/api/chat/history/${getUserId()}/${getTokenFromUrl()}?limit=20`);
                 if (response.ok) {
                     const data = await response.json();
                     const history = data.data || [];
@@ -352,7 +352,7 @@
             
             try {
                 // Send to API with consistent user_id
-                const response = await fetch('http://localhost:3000/api/chat', {
+                const response = await fetch('https://agent-tge-server.up.railway.app/api/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
