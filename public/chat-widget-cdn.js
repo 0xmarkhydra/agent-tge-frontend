@@ -4,9 +4,7 @@
   // CDN Configuration
   const CDN_CONFIG = {
     apiUrl: ' https://api-agent.pretgemarket.xyz/api',
-    // apiUrl: 'https://api-agent.pretgemarket.xyz/api',
     widgetUrl: 'https://agent.pretgemarket.xyz', // Updated to current port
-    // widgetUrl: 'https://agent.pretgemarket.xyz', // Updated to current port
     version: '1.0.0',
     cdnVersion: '1.0.0'
   };
