@@ -55,7 +55,6 @@ export const AuthPage: React.FC = () => {
         />
       ) : (
         <RegisterForm 
-          onSuccess={handleAuthSuccess}
           onSwitchToLogin={switchToLogin}
         />
       )}

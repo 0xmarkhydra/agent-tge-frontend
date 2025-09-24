@@ -23,7 +23,6 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
     isTyping,
     error,
     currentToken,
-    currentUserId,
     sendMessage,
     loadHistory,
     setToken,
@@ -141,7 +140,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
 
         {/* Render messages */}
         {messages.map((message, index) => {
-          const isUser = message.question && !message.answer;
+          const isUser = Boolean(message.question && !message.answer);
           return (
             <Message
               key={message.id || index}

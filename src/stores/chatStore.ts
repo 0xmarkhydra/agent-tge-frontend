@@ -25,24 +25,24 @@ export const useChatStore = create<ChatStore>()(
 
         set({ isLoading: true, error: null });
 
+        // Add user message to UI immediately
+        const userMessage: ChatMessage = {
+          id: `user_${Date.now()}`,
+          user_id: currentUserId,
+          token_slug: currentToken,
+          question: question.trim(),
+          answer: '',
+          message_order: messages.length + 1,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        set({ 
+          messages: [...messages, userMessage],
+          isTyping: true,
+        });
+
         try {
-          // Add user message to UI immediately
-          const userMessage: ChatMessage = {
-            id: `user_${Date.now()}`,
-            user_id: currentUserId,
-            token_slug: currentToken,
-            question: question.trim(),
-            answer: '',
-            message_order: messages.length + 1,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-
-          set({ 
-            messages: [...messages, userMessage],
-            isTyping: true,
-          });
-
           // Send to backend
           const response = await chatService.sendMessage({
             user_id: currentUserId,
@@ -55,7 +55,15 @@ export const useChatStore = create<ChatStore>()(
             ...userMessage,
             id: response.data.metadata?.message_id || userMessage.id,
             answer: response.data.answer,
-            metadata: response.data.metadata,
+            metadata: response.data.metadata ? {
+              processing_time: response.data.metadata.processing_time,
+              model_used: response.data.metadata.model_used,
+              timestamp: new Date().toISOString(),
+              context_messages: response.data.metadata.context_messages,
+              has_token_data: response.data.metadata.has_token_data,
+              has_project_data: response.data.metadata.has_project_data,
+              api_calls: response.data.metadata.api_calls,
+            } : undefined,
             citations: response.data.citations,
           };
 
@@ -73,7 +81,7 @@ export const useChatStore = create<ChatStore>()(
           // Update user message with error
           set(state => ({
             messages: state.messages.map(msg => 
-              msg.id === `user_${Date.now()}` 
+              msg.id === userMessage.id 
                 ? { 
                     ...msg, 
                     answer: 'Sorry, I encountered an error. Please try again.',
