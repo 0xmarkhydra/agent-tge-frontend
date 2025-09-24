@@ -8,8 +8,8 @@ Create a `.env.local` file in the frontend directory:
 
 ```bash
 # Frontend Environment Variables
-VITE_API_URL=http://agent-tge-server.up.railway.app/api
-VITE_API_BASE_URL=http://agent-tge-server.up.railway.app
+VITE_API_URL=https://api-agent.pretgemarket.xyz/api
+VITE_API_BASE_URL=https://api-agent.pretgemarket.xyz
 VITE_APP_NAME=Chat Widget
 VITE_APP_VERSION=1.0.0
 VITE_DEBUG=true
@@ -20,8 +20,8 @@ VITE_LOG_LEVEL=debug
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
-| `VITE_API_URL` | Backend API URL | `http://agent-tge-server.up.railway.app/api` | No |
-| `VITE_API_BASE_URL` | Backend base URL | `http://agent-tge-server.up.railway.app` | No |
+| `VITE_API_URL` | Backend API URL | `https://api-agent.pretgemarket.xyz/api` | No |
+| `VITE_API_BASE_URL` | Backend base URL | `https://api-agent.pretgemarket.xyz` | No |
 | `VITE_APP_NAME` | Application name | `Chat Widget` | No |
 | `VITE_APP_VERSION` | Application version | `1.0.0` | No |
 | `VITE_DEBUG` | Enable debug mode | `true` in dev | No |
@@ -44,7 +44,7 @@ VITE_LOG_LEVEL=info
 ### 4. Current Configuration
 
 The frontend is currently configured to connect to:
-- **Backend API**: `http://agent-tge-server.up.railway.app/api`
+- **Backend API**: `https://api-agent.pretgemarket.xyz/api`
 - **Frontend Dev Server**: `https://agent.pretgemarket.xyz`
 
 ### 5. Testing the Connection
@@ -53,10 +53,10 @@ You can test the API connection by running:
 
 ```bash
 # Test backend health
-curl http://agent-tge-server.up.railway.app/health
+curl https://api-agent.pretgemarket.xyz/health
 
 # Test chat API
-curl -X POST 'http://agent-tge-server.up.railway.app/api/chat' \
+curl -X POST 'https://api-agent.pretgemarket.xyz/api/chat' \
   -H 'Content-Type: application/json' \
   -d '{
     "token_slug": "xpl",
@@ -69,7 +69,7 @@ curl -X POST 'http://agent-tge-server.up.railway.app/api/chat' \
 
 #### Backend not accessible
 - Ensure backend server is running on port 3000
-- Check if backend is accessible: `curl http://agent-tge-server.up.railway.app/health`
+- Check if backend is accessible: `curl https://api-agent.pretgemarket.xyz/health`
 
 #### CORS Issues
 - Backend should allow requests from `https://agent.pretgemarket.xyz`

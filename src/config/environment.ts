@@ -1,8 +1,8 @@
 // Environment Configuration
 export const ENV = {
   // API Configuration
-  API_URL: import.meta.env.VITE_API_URL || 'http://agent-tge-server.up.railway.app/api',
-  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://agent-tge-server.up.railway.app',
+  API_URL: import.meta.env.VITE_API_URL || 'https://api-agent.pretgemarket.xyz/api',
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://api-agent.pretgemarket.xyz',
   
   // App Configuration
   APP_NAME: import.meta.env.VITE_APP_NAME || 'Chat Widget',

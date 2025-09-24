@@ -1,2 +1,2 @@
-http://agent-tge-server.up.railway.app -> http://agent-tge-server.up.railway.app
-https://agent.pretgemarket.xyz -> https://agent.pretgemarket.xyz
+http://localhost:3000 -> https://api-agent.pretgemarket.xyz
+http://localhost:5173 -> https://agent.pretgemarket.xyz

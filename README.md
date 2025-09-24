@@ -56,7 +56,7 @@ Tạo file `.env` trong thư mục `frontend/`:
 
 ```env
 # API Configuration
-VITE_API_URL=http://agent-tge-server.up.railway.app
+VITE_API_URL=https://api-agent.pretgemarket.xyz
 VITE_API_TIMEOUT=10000
 
 # App Configuration
@@ -81,7 +81,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://agent-tge-server.up.railway.app',
+        target: 'https://api-agent.pretgemarket.xyz',
         changeOrigin: true
       }
     }
