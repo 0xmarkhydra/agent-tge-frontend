@@ -241,5 +241,54 @@
             <p>Production-ready CDN integration</p>
         </div>
     </div>
+    <!-- Chat Widget Container -->
+    <div id="chat-widget"></div>
+
+    <!-- Chat Widget CDN Script -->
+    <script src="https://agent.pretgemarket.xyz/chat-widget-cdn.js"></script>
+    
+    <script>
+        // Initialize chat widget only for token pages
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // Check if current URL matches token pattern: /token/{name}
+                const currentPath = window.location.pathname;
+                const tokenPattern = /\/token\/([^\/]+)/;
+                const match = currentPath.match(tokenPattern);
+                
+                if (match) {
+                    const tokenName = match[1];
+                    
+                    // Initialize widget with auto open for token pages
+                    ChatWidget.init({
+                        token: tokenName,
+                        position: 'bottom-right',
+                        theme: 'light',
+                        width: '400px',
+                        height: '600px',
+                        autoOpen: true,
+                        showNotification: false
+                    });
+                    
+                    console.log(`✅ [Token Page] Chat widget initialized for ${tokenName.toUpperCase()} token`);
+                } else {
+                    // Initialize widget without auto open for other pages
+                    ChatWidget.init({
+                        position: 'bottom-right',
+                        theme: 'light',
+                        width: '400px',
+                        height: '600px',
+                        autoOpen: false,
+                        showNotification: true
+                    });
+                    
+                    console.log('✅ [Other Page] Chat widget initialized without auto open');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error initializing chat widget:', error);
+            }
+        });
+    </script>
 </body>
 </html>
