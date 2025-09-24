@@ -139,6 +139,16 @@ class ApiClient {
   public patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<StandardApiResponse<T>>> {
     return this.client.patch(url, data, config);
   }
+
+  // Getter for baseURL
+  public get baseURL(): string {
+    return this.client.defaults.baseURL || '';
+  }
+
+  // Getter for headers
+  public get headers(): any {
+    return this.client.defaults.headers;
+  }
 }
 
 // Export singleton instance

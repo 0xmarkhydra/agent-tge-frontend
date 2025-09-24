@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { chatService } from '../services/chatService';
+import { chatService, type StreamChunk } from '../services/chatService';
 import type { ChatState, ChatActions, ChatMessage } from '../types/chat';
 
 interface ChatStore extends ChatState, ChatActions {}
@@ -43,37 +43,105 @@ export const useChatStore = create<ChatStore>()(
         });
 
         try {
-          // Send to backend
-          const response = await chatService.sendMessage({
-            user_id: currentUserId,
-            token_slug: currentToken,
-            question: question.trim(),
-          });
-
-          // Update user message with real response
-          const updatedUserMessage = {
-            ...userMessage,
-            id: response.data.metadata?.message_id || userMessage.id,
-            answer: response.data.answer,
-            metadata: response.data.metadata ? {
-              processing_time: response.data.metadata.processing_time,
-              model_used: response.data.metadata.model_used,
-              timestamp: new Date().toISOString(),
-              context_messages: response.data.metadata.context_messages,
-              has_token_data: response.data.metadata.has_token_data,
-              has_project_data: response.data.metadata.has_project_data,
-              api_calls: response.data.metadata.api_calls,
-            } : undefined,
-            citations: response.data.citations,
-          };
-
-          set(state => ({
-            messages: state.messages.map(msg => 
-              msg.id === userMessage.id ? updatedUserMessage : msg
-            ),
-            isTyping: false,
-            isLoading: false,
-          }));
+          // Use streaming for better UX
+          await chatService.sendMessageStream(
+            {
+              user_id: currentUserId,
+              token_slug: currentToken,
+              question: question.trim(),
+            },
+            // onChunk
+            (chunk: StreamChunk) => {
+              if (chunk.type === 'chunk') {
+                // Append chunk to current message
+                set(state => ({
+                  messages: state.messages.map(msg => 
+                    msg.id === userMessage.id 
+                      ? { ...msg, answer: msg.answer + chunk.data }
+                      : msg
+                  ),
+                }));
+              } else if (chunk.type === 'metadata') {
+                // Update message with metadata
+                set(state => ({
+                  messages: state.messages.map(msg => 
+                    msg.id === userMessage.id 
+                      ? { 
+                          ...msg, 
+                          metadata: {
+                            processing_time: 0,
+                            model_used: 'gpt-4o',
+                            timestamp: new Date().toISOString(),
+                            context_messages: chunk.data.context_messages || 0,
+                            has_token_data: chunk.data.has_token_data,
+                            has_project_data: chunk.data.has_project_data,
+                            api_calls: {
+                              pretge_token_api: chunk.data.has_token_data || false,
+                              pretge_project_api: chunk.data.has_project_data || false,
+                            },
+                          }
+                        }
+                      : msg
+                  ),
+                }));
+              } else if (chunk.type === 'complete') {
+                // Finalize message with completion data
+                set(state => ({
+                  messages: state.messages.map(msg => 
+                    msg.id === userMessage.id 
+                      ? { 
+                          ...msg, 
+                          id: chunk.data.message_id || msg.id,
+                          metadata: msg.metadata ? {
+                            ...msg.metadata,
+                            processing_time: chunk.data.processing_time || 0,
+                            message_id: chunk.data.message_id,
+                          } : {
+                            processing_time: chunk.data.processing_time || 0,
+                            model_used: 'gpt-4o',
+                            timestamp: new Date().toISOString(),
+                            context_messages: 0,
+                            message_id: chunk.data.message_id,
+                          },
+                          citations: chunk.data.citations || [],
+                        }
+                      : msg
+                  ),
+                  isTyping: false,
+                  isLoading: false,
+                }));
+              }
+            },
+            // onComplete
+            () => {
+              set({ isTyping: false, isLoading: false });
+            },
+            // onError
+            (error: Error) => {
+              console.error('🔴 [ChatStore] [sendMessage] [stream_error]:', error);
+              
+              // Update user message with error
+              set(state => ({
+                messages: state.messages.map(msg => 
+                  msg.id === userMessage.id 
+                    ? { 
+                        ...msg, 
+                        answer: msg.answer || 'Sorry, I encountered an error. Please try again.',
+                        metadata: { 
+                          processing_time: 0, 
+                          model_used: 'error',
+                          timestamp: new Date().toISOString(),
+                          context_messages: 0 
+                        }
+                      }
+                    : msg
+                ),
+                isTyping: false,
+                isLoading: false,
+                error: error.message,
+              }));
+            }
+          );
 
         } catch (error) {
           console.error('🔴 [ChatStore] [sendMessage] [error]:', error);

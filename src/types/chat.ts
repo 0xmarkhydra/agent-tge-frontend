@@ -11,6 +11,7 @@ export interface ChatMessage {
     context_messages: number;
     has_token_data?: boolean;
     has_project_data?: boolean;
+    message_id?: string;
     api_calls?: {
       pretge_token_api: boolean;
       pretge_project_api: boolean;

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streaming Chat Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .chat-container {
+            height: 400px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #fafafa;
+            margin-bottom: 15px;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 70%;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+        }
+        .ai-message {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+        }
+        .streaming-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 16px;
+            background-color: #007bff;
+            margin-left: 4px;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        button {
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Streaming Chat Demo</h1>
+        <p>Test streaming functionality của chat widget với real-time text generation.</p>
+        
+        <div class="chat-container" id="chatContainer">
+            <div class="message ai-message">
+                <strong>AI Assistant:</strong> Xin chào! Tôi là AI assistant cho XPL token. Hãy hỏi tôi bất cứ điều gì về XPL hoặc Plasma blockchain!
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Nhập câu hỏi của bạn..." />
+            <button id="sendButton" onclick="sendMessage()">Gửi</button>
+        </div>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000';
+        let isStreaming = false;
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        function addMessage(content, isUser = false) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+            
+            if (isUser) {
+                messageDiv.innerHTML = `<strong>Bạn:</strong> ${content}`;
+            } else {
+                messageDiv.innerHTML = `<strong>AI Assistant:</strong> <span class="message-content">${content}</span>`;
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return messageDiv;
+        }
+
+        function updateMessage(messageDiv, content, isStreaming = false) {
+            const contentSpan = messageDiv.querySelector('.message-content');
+            if (contentSpan) {
+                contentSpan.innerHTML = content + (isStreaming ? '<span class="streaming-indicator"></span>' : '');
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const button = document.getElementById('sendButton');
+            const message = input.value.trim();
+            
+            if (!message || isStreaming) return;
+            
+            isStreaming = true;
+            button.disabled = true;
+            input.value = '';
+            
+            // Add user message
+            addMessage(message, true);
+            
+            // Add AI message placeholder
+            const aiMessageDiv = addMessage('', false);
+            let aiResponse = '';
+            
+            showStatus('Đang kết nối...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/event-stream',
+                    },
+                    body: JSON.stringify({
+                        user_id: 'demo_user_' + Date.now(),
+                        token_slug: 'xpl',
+                        question: message
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                showStatus('Đang nhận phản hồi...', 'info');
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    
+                    if (done) {
+                        showStatus('Hoàn thành!', 'success');
+                        break;
+                    }
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (line.trim() === '') continue;
+                        
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            if (data === '[DONE]') {
+                                showStatus('Hoàn thành!', 'success');
+                                return;
+                            }
+                            
+                            try {
+                                const chunk = JSON.parse(data);
+                                console.log('Received chunk:', chunk);
+                                
+                                if (chunk.type === 'chunk') {
+                                    aiResponse += chunk.data;
+                                    updateMessage(aiMessageDiv, aiResponse, true);
+                                } else if (chunk.type === 'complete') {
+                                    updateMessage(aiMessageDiv, aiResponse, false);
+                                    showStatus(`Hoàn thành! (${chunk.data.processing_time.toFixed(1)}s)`, 'success');
+                                }
+                            } catch (error) {
+                                console.error('Parse error:', error);
+                            }
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.error('Streaming error:', error);
+                updateMessage(aiMessageDiv, 'Xin lỗi, đã xảy ra lỗi khi xử lý câu hỏi của bạn.', false);
+                showStatus('Lỗi: ' + error.message, 'error');
+            } finally {
+                isStreaming = false;
+                button.disabled = false;
+            }
+        }
+
+        // Allow Enter key to send message
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Show initial status
+        showStatus('Sẵn sàng! Hãy hỏi tôi về XPL token.', 'success');
+    </script>
+</body>
+</html>
