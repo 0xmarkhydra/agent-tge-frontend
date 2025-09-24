@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Chat History</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #2196f3;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .test-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .test-btn.primary {
+            background: #2196f3;
+            color: white;
+        }
+        .test-btn.success {
+            background: #4caf50;
+            color: white;
+        }
+        .test-btn.warning {
+            background: #ff9800;
+            color: white;
+        }
+        .test-btn.danger {
+            background: #f44336;
+            color: white;
+        }
+        .result {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .status.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Chat History & API</h1>
+        
+        <div class="test-section">
+            <h3>1. User ID Management</h3>
+            <div class="button-group">
+                <button class="test-btn primary" onclick="getCurrentUserId()">Get Current User ID</button>
+                <button class="test-btn warning" onclick="generateNewUserId()">Generate New User ID</button>
+                <button class="test-btn danger" onclick="clearUserId()">Clear User ID</button>
+            </div>
+            <div id="user-id-result" class="result">Click "Get Current User ID" to see your current user ID</div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. API Connection Test</h3>
+            <div class="button-group">
+                <button class="test-btn primary" onclick="testChatAPI()">Test Chat API</button>
+                <button class="test-btn success" onclick="testHistoryAPI()">Test History API</button>
+            </div>
+            <div id="api-result" class="result">Click buttons above to test API endpoints</div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Chat History Test</h3>
+            <div class="button-group">
+                <button class="test-btn primary" onclick="sendTestMessage()">Send Test Message</button>
+                <button class="test-btn success" onclick="loadTestHistory()">Load Chat History</button>
+                <button class="test-btn warning" onclick="clearHistory()">Clear Local History</button>
+            </div>
+            <div id="history-result" class="result">Click "Send Test Message" to test the full flow</div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Live Chat Widget</h3>
+            <p>Use the chat widget below to test real-time chat with history:</p>
+            <div id="status" class="status info">Ready to test chat widget</div>
+        </div>
+    </div>
+
+    <!-- Chat Widget Container -->
+    <div id="chat-widget"></div>
+
+    <!-- Chat Widget CDN Script -->
+    <script src="chat-widget-cdn.js"></script>
+    
+    <script>
+        // Get current user ID
+        function getCurrentUserId() {
+            const userId = getUserId();
+            document.getElementById('user-id-result').textContent = `Current User ID: ${userId}`;
+        }
+
+        // Generate new user ID
+        function generateNewUserId() {
+            const newUserId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            localStorage.setItem('chat_user_id', newUserId);
+            document.getElementById('user-id-result').textContent = `New User ID Generated: ${newUserId}`;
+            updateStatus('New user ID generated. Chat history will start fresh.');
+        }
+
+        // Clear user ID
+        function clearUserId() {
+            localStorage.removeItem('chat_user_id');
+            document.getElementById('user-id-result').textContent = 'User ID cleared from localStorage';
+            updateStatus('User ID cleared. Next chat will generate a new ID.');
+        }
+
+        // Get user ID (same as in chat-minimal.html)
+        function getUserId() {
+            let userId = localStorage.getItem('chat_user_id');
+            if (!userId) {
+                userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                localStorage.setItem('chat_user_id', userId);
+            }
+            return userId;
+        }
+
+        // Test Chat API
+        async function testChatAPI() {
+            try {
+                const response = await fetch('http://localhost:3000/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: getUserId(),
+                        token_slug: 'btc',
+                        question: 'Test message from API test'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('api-result').textContent = 
+                        `✅ Chat API Working!\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    document.getElementById('api-result').textContent = 
+                        `❌ Chat API Error: ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                document.getElementById('api-result').textContent = 
+                    `❌ Network Error: ${error.message}`;
+            }
+        }
+
+        // Test History API
+        async function testHistoryAPI() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/chat/history/${getUserId()}/btc?limit=5`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('api-result').textContent = 
+                        `✅ History API Working!\n\nFound ${data.data.length} messages:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    document.getElementById('api-result').textContent = 
+                        `❌ History API Error: ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                document.getElementById('api-result').textContent = 
+                    `❌ Network Error: ${error.message}`;
+            }
+        }
+
+        // Send test message
+        async function sendTestMessage() {
+            try {
+                const response = await fetch('http://localhost:3000/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: getUserId(),
+                        token_slug: 'btc',
+                        question: `Test message at ${new Date().toLocaleTimeString()}`
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('history-result').textContent = 
+                        `✅ Test message sent successfully!\n\nResponse: ${data.data.answer.substring(0, 100)}...`;
+                    updateStatus('Test message sent. Use "Load Chat History" to see it.');
+                } else {
+                    document.getElementById('history-result').textContent = 
+                        `❌ Failed to send message: ${response.status}`;
+                }
+            } catch (error) {
+                document.getElementById('history-result').textContent = 
+                    `❌ Error: ${error.message}`;
+            }
+        }
+
+        // Load test history
+        async function loadTestHistory() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/chat/history/${getUserId()}/btc?limit=10`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const messages = data.data || [];
+                    
+                    let historyText = `✅ Found ${messages.length} messages:\n\n`;
+                    messages.forEach((msg, index) => {
+                        if (msg.question) {
+                            historyText += `${index + 1}. User: ${msg.question}\n`;
+                        }
+                        if (msg.answer) {
+                            historyText += `   AI: ${msg.answer.substring(0, 50)}...\n\n`;
+                        }
+                    });
+                    
+                    document.getElementById('history-result').textContent = historyText;
+                } else {
+                    document.getElementById('history-result').textContent = 
+                        `❌ Failed to load history: ${response.status}`;
+                }
+            } catch (error) {
+                document.getElementById('history-result').textContent = 
+                    `❌ Error: ${error.message}`;
+            }
+        }
+
+        // Clear local history
+        function clearHistory() {
+            document.getElementById('history-result').textContent = 'Local display cleared. Database history remains.';
+        }
+
+        // Update status
+        function updateStatus(message) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status info';
+        }
+
+        // Initialize widget
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // Initialize chat widget
+                window.ChatWidget.init({
+                    token: 'btc',
+                    position: 'bottom-right',
+                    theme: 'light',
+                    width: '400px',
+                    height: '600px',
+                    autoOpen: false,
+                    showNotification: false
+                });
+                
+                updateStatus('✅ Chat widget initialized. Use it to test real-time chat with history.');
+                
+                // Get initial user ID
+                getCurrentUserId();
+                
+            } catch (error) {
+                updateStatus(`❌ Error initializing widget: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>
+

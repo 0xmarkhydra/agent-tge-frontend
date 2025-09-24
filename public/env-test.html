@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environment Test</title>
+</head>
+<body>
+    <h1>Environment Variables Test</h1>
+    <div id="env-vars"></div>
+    
+    <h2>API Test</h2>
+    <button onclick="testAPI()">Test API Call</button>
+    <div id="api-result"></div>
+
+    <script type="module">
+        // Import environment config
+        import { ENV } from '/src/config/environment.ts';
+        
+        // Display environment variables
+        document.getElementById('env-vars').innerHTML = `
+            <pre>${JSON.stringify(ENV, null, 2)}</pre>
+        `;
+        
+        // Test API function
+        window.testAPI = async function() {
+            const resultEl = document.getElementById('api-result');
+            
+            try {
+                console.log('Using API URL:', ENV.API_URL);
+                
+                const response = await fetch(`${ENV.API_URL}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        token_slug: 'xpl',
+                        question: 'Environment test',
+                        user_id: 'env_test_123'
+                    })
+                });
+                
+                const data = await response.json();
+                resultEl.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                console.log('API Response:', data);
+                
+            } catch (error) {
+                resultEl.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                console.error('API Error:', error);
+            }
+        };
+    </script>
+</body>
+</html>

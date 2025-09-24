@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Widget Position</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .test-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        .test-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .test-btn.right {
+            background: #4caf50;
+            color: white;
+        }
+        .test-btn.left {
+            background: #2196f3;
+            color: white;
+        }
+        .test-btn.reset {
+            background: #ff9800;
+            color: white;
+        }
+        .status {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .instructions {
+            background: #f0f8ff;
+            border: 1px solid #2196f3;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Widget Position</h1>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Click "Test Bottom-Right" to position widget at bottom-right</li>
+                <li>Click "Test Bottom-Left" to position widget at bottom-left</li>
+                <li>Click "Reset Widget" to destroy and recreate</li>
+                <li>Check if the toggle button appears in the correct position</li>
+                <li>When widget is open, the button should turn red with X icon</li>
+                <li>When widget is closed, the button should be blue with chat icon</li>
+            </ol>
+        </div>
+        
+        <div class="test-buttons">
+            <button class="test-btn right" onclick="testPosition('bottom-right')">Test Bottom-Right</button>
+            <button class="test-btn left" onclick="testPosition('bottom-left')">Test Bottom-Left</button>
+            <button class="test-btn reset" onclick="resetWidget()">Reset Widget</button>
+        </div>
+        
+        <div class="status" id="status">
+            ✅ Ready to test widget positions
+        </div>
+        
+        <p><strong>Expected behavior:</strong></p>
+        <ul>
+            <li>Toggle button should appear at the specified position</li>
+            <li>Button should be circular with proper styling</li>
+            <li>Button should change color and icon when toggling</li>
+            <li>Widget should open/close smoothly</li>
+        </ul>
+    </div>
+
+    <!-- Chat Widget Container -->
+    <div id="chat-widget"></div>
+
+    <!-- Chat Widget CDN Script -->
+    <script src="chat-widget-cdn.js"></script>
+    
+    <script>
+        function updateStatus(message) {
+            document.getElementById('status').innerHTML = message;
+        }
+        
+        function testPosition(position) {
+            // Destroy existing widget
+            if (window.ChatWidget) {
+                window.ChatWidget.destroy();
+            }
+            
+            // Wait a bit then create new widget
+            setTimeout(() => {
+                try {
+                    window.ChatWidget.init({
+                        token: 'btc',
+                        position: position,
+                        theme: 'light',
+                        width: '400px',
+                        height: '600px',
+                        autoOpen: false,
+                        showNotification: false
+                    });
+                    
+                    updateStatus(`✅ Widget positioned at ${position}. Check the ${position === 'bottom-right' ? 'bottom-right' : 'bottom-left'} corner.`);
+                    
+                } catch (error) {
+                    updateStatus(`❌ Error: ${error.message}`);
+                }
+            }, 100);
+        }
+        
+        function resetWidget() {
+            if (window.ChatWidget) {
+                window.ChatWidget.destroy();
+                updateStatus('🔄 Widget destroyed. Ready for new test.');
+            }
+        }
+        
+        // Initialize with default position
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus('🚀 Page loaded. Ready to test widget positions.');
+        });
+    </script>
+</body>
+</html>

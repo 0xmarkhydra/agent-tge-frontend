@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Close Button Position</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .instructions {
+            background: #f0f8ff;
+            border: 1px solid #2196f3;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .expected {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .button-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        .test-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .test-btn.open {
+            background: #4caf50;
+            color: white;
+        }
+        .test-btn.close {
+            background: #f44336;
+            color: white;
+        }
+        .test-btn.reset {
+            background: #ff9800;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Close Button Position</h1>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Click "Open Widget" to show the chat widget</li>
+                <li>Look for the <strong>X button</strong> at the <strong>top-right corner</strong> of the widget</li>
+                <li>The X button should be inside the widget frame, not floating outside</li>
+                <li>Click the X button to close the widget</li>
+                <li>Use "Reset Widget" to destroy and recreate if needed</li>
+            </ol>
+        </div>
+        
+        <div class="expected">
+            <h3>Expected Behavior:</h3>
+            <ul>
+                <li>✅ Toggle button (chat icon) stays at bottom-right of screen</li>
+                <li>✅ Close button (X icon) appears at top-right corner of widget</li>
+                <li>✅ Close button has semi-transparent background</li>
+                <li>✅ Close button turns red on hover</li>
+                <li>✅ Clicking X button closes the widget</li>
+            </ul>
+        </div>
+        
+        <div class="button-group">
+            <button class="test-btn open" onclick="openWidget()">Open Widget</button>
+            <button class="test-btn close" onclick="closeWidget()">Close Widget</button>
+            <button class="test-btn reset" onclick="resetWidget()">Reset Widget</button>
+        </div>
+        
+        <div id="status" class="expected">
+            ✅ Ready to test close button position
+        </div>
+    </div>
+
+    <!-- Chat Widget Container -->
+    <div id="chat-widget"></div>
+
+    <!-- Chat Widget CDN Script -->
+    <script src="chat-widget-cdn.js"></script>
+    
+    <script>
+        function updateStatus(message) {
+            document.getElementById('status').innerHTML = message;
+        }
+        
+        function openWidget() {
+            if (window.ChatWidget) {
+                window.ChatWidget.show();
+                updateStatus('✅ Widget opened. Check top-right corner for X button.');
+            }
+        }
+        
+        function closeWidget() {
+            if (window.ChatWidget) {
+                window.ChatWidget.hide();
+                updateStatus('✅ Widget closed.');
+            }
+        }
+        
+        function resetWidget() {
+            if (window.ChatWidget) {
+                window.ChatWidget.destroy();
+            }
+            
+            setTimeout(() => {
+                window.ChatWidget.init({
+                    token: 'btc',
+                    position: 'bottom-right',
+                    theme: 'light',
+                    width: '400px',
+                    height: '600px',
+                    autoOpen: false,
+                    showNotification: false
+                });
+                updateStatus('🔄 Widget reset. Ready for testing.');
+            }, 100);
+        }
+        
+        // Initialize widget
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                window.ChatWidget.init({
+                    token: 'btc',
+                    position: 'bottom-right',
+                    theme: 'light',
+                    width: '400px',
+                    height: '600px',
+                    autoOpen: false,
+                    showNotification: false
+                });
+                
+                updateStatus('🚀 Widget initialized. Click "Open Widget" to test close button position.');
+                
+            } catch (error) {
+                updateStatus(`❌ Error: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>
