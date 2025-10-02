@@ -28,7 +28,7 @@ export const WidgetDemoPage: React.FC = () => {
             
             <div className="flex items-center space-x-4">
               <a 
-                href="https://api-agent.pretgemarket.xyz/docs" 
+                href="https://cdn-agent.up.railway.app/docs" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-sm text-blue-600 hover:text-blue-800 underline"
@@ -236,7 +236,7 @@ export const WidgetDemoPage: React.FC = () => {
          data-token="${selectedToken}" 
          data-user-id="auto"
          data-client-url="https://your-widget-domain.com"
-         data-api-url="https://api-agent.pretgemarket.xyz/api">
+         data-api-url="https://cdn-agent.up.railway.app/api">
     </div>
     
     <!-- CDN Script -->
@@ -259,7 +259,7 @@ export const WidgetDemoPage: React.FC = () => {
          data-token="${selectedToken}" 
          data-user-id="auto"
          data-client-url="https://your-widget-domain.com"
-         data-api-url="https://api-agent.pretgemarket.xyz/api">
+         data-api-url="https://cdn-agent.up.railway.app/api">
     </div>
     
     <!-- CDN Script -->
@@ -303,7 +303,7 @@ export const WidgetDemoPage: React.FC = () => {
             token: '${selectedToken}',
             userId: 'auto',
             clientUrl: 'https://your-widget-domain.com',
-            apiUrl: 'https://api-agent.pretgemarket.xyz/api',
+            apiUrl: 'https://cdn-agent.up.railway.app/api',
             position: 'bottom-right',
             width: '400px',
             height: '600px'
@@ -331,7 +331,7 @@ export const WidgetDemoPage: React.FC = () => {
             token: '${selectedToken}',
             userId: 'auto',
             clientUrl: 'https://your-widget-domain.com',
-            apiUrl: 'https://api-agent.pretgemarket.xyz/api',
+            apiUrl: 'https://cdn-agent.up.railway.app/api',
             position: 'bottom-right',
             width: '400px',
             height: '600px'
