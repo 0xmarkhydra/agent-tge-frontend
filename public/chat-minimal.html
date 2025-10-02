@@ -464,7 +464,13 @@
 
         // Get API URL from URL parameters
         function getApiUrl() {
-           return 'https://api-agent.pretgemarket.xyz/api';
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiUrl = urlParams.get('apiUrl');
+            if (apiUrl) {
+                return decodeURIComponent(apiUrl);
+            }
+            // Fallback to current configuration
+            return 'https://agent-tge-server.up.railway.app/api';
         }
 
         // Generate or get user ID

@@ -3,8 +3,8 @@
 
   // CDN Configuration
   const CDN_CONFIG = {
-    apiUrl: 'https://api-agent.pretgemarket.xyz/api',
-    widgetUrl: 'https://agent.pretgemarket.xyz',
+    apiUrl: 'https://agent-tge-server.up.railway.app/api',
+    widgetUrl: 'https://cdn-agent.up.railway.app',
     version: '1.0.0',
     cdnVersion: '1.0.0'
   };

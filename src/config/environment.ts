@@ -13,7 +13,7 @@ export const ENV = {
   LOG_LEVEL: import.meta.env.VITE_LOG_LEVEL || 'info',
   
   // Widget Configuration
-  WIDGET_URL: import.meta.env.VITE_WIDGET_URL || 'https://agent.pretgemarket.xyz',
+  WIDGET_URL: import.meta.env.VITE_WIDGET_URL || 'https://cdn-agent.up.railway.app',
 } as const;
 
 // Log environment info in development
