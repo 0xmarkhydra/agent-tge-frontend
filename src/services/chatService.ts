@@ -1,11 +1,6 @@
 import { apiClient } from './apiClient';
 import type { ChatRequest, ChatResponse, ChatHistoryResponse } from '../types/chat';
 
-export interface StreamChunk {
-  type: 'metadata' | 'chunk' | 'complete';
-  data: any;
-}
-
 export class ChatService {
   private baseUrl = '/chat';
 
@@ -82,77 +77,6 @@ export class ChatService {
   getCurrentToken(defaultToken: string = 'xpl'): string {
     const urlToken = this.extractTokenFromUrl();
     return urlToken || defaultToken;
-  }
-
-  // Streaming message method
-  async sendMessageStream(
-    request: ChatRequest,
-    onChunk: (chunk: StreamChunk) => void,
-    onComplete: () => void,
-    onError: (error: Error) => void
-  ): Promise<void> {
-    try {
-      console.log('🔄 [ChatService] [sendMessageStream] [request]:', request);
-      
-      const response = await fetch(`${apiClient.baseURL}${this.baseUrl}/stream`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...apiClient.headers,
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('No response body reader available');
-      }
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        
-        if (done) {
-          console.log('✅ [ChatService] [sendMessageStream] [complete]');
-          onComplete();
-          break;
-        }
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || ''; // Keep incomplete line in buffer
-
-        for (const line of lines) {
-          if (line.trim() === '') continue;
-          
-          try {
-            // Handle Server-Sent Events format
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6); // Remove 'data: ' prefix
-              if (data === '[DONE]') {
-                onComplete();
-                return;
-              }
-              
-              const chunk: StreamChunk = JSON.parse(data);
-              console.log('📦 [ChatService] [sendMessageStream] [chunk]:', chunk);
-              onChunk(chunk);
-            }
-          } catch (error) {
-            console.error('🔴 [ChatService] [sendMessageStream] [parse_error]:', error);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('🔴 [ChatService] [sendMessageStream] [error]:', error);
-      onError(error as Error);
-    }
   }
 }
 

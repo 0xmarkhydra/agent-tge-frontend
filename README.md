@@ -56,7 +56,7 @@ Tạo file `.env` trong thư mục `frontend/`:
 
 ```env
 # API Configuration
-VITE_API_URL=https://api-agent.pretgemarket.xyz
+VITE_API_URL=http://localhost:3000
 VITE_API_TIMEOUT=10000
 
 # App Configuration
@@ -81,7 +81,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'https://api-agent.pretgemarket.xyz',
+        target: 'http://localhost:3000',
         changeOrigin: true
       }
     }

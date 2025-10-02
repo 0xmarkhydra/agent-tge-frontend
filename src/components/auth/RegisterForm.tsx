@@ -4,10 +4,12 @@ import { UserType, type RegisterData } from '../../types/auth';
 import { authService } from '../../services/authService';
 
 interface RegisterFormProps {
+  onSuccess?: () => void;
   onSwitchToLogin?: () => void;
 }
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({
+  onSuccess,
   onSwitchToLogin,
 }) => {
   const [isLoading, setIsLoading] = useState(false);

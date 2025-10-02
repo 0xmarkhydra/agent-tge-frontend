@@ -1,8 +1,8 @@
 // Environment Configuration
 export const ENV = {
   // API Configuration
-  API_URL: import.meta.env.VITE_API_URL || 'https://api-agent.pretgemarket.xyz/api',
-  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://api-agent.pretgemarket.xyz',
+  API_URL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
   
   // App Configuration
   APP_NAME: import.meta.env.VITE_APP_NAME || 'Chat Widget',
@@ -13,7 +13,7 @@ export const ENV = {
   LOG_LEVEL: import.meta.env.VITE_LOG_LEVEL || 'info',
   
   // Widget Configuration
-  WIDGET_URL: import.meta.env.VITE_WIDGET_URL || 'https://agent.pretgemarket.xyz',
+  WIDGET_URL: import.meta.env.VITE_WIDGET_URL || 'http://localhost:5173',
 } as const;
 
 // Log environment info in development
